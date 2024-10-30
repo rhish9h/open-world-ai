@@ -15,6 +15,12 @@ function App() {
         {/* Character */}
         <Character position={[0, 0, 0]} />
 
+        {/* Ground */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[10, 10]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+
         {/* Controls */}
         <OrbitControls />
       </Canvas>

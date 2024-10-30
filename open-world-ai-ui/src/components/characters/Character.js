@@ -1,21 +1,29 @@
 // src/components/characters/Character.js
-import React, { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
-import useKeyboardControls from "../../hooks/useKeyboardControls";
+import React, { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { useGLTF, useAnimations } from '@react-three/drei';
+import useKeyboardControls from '../../hooks/useKeyboardControls';
 
 function Character(props) {
   const ref = useRef();
 
-  // Load the GLTF model
-  const { scene } = useGLTF("/models/character.glb");
-  ref.current = scene;
+  // Load the GLTF model with animations
+  const { scene, animations } = useGLTF('/models/animated_character.glb');
+  scene.traverse((object) => {
+    object.castShadow = true;
+  });
+
+  // Setup animations
+  const { actions } = useAnimations(animations, ref);
 
   // Get keyboard input
   const { forward, backward, left, right } = useKeyboardControls();
 
   // Movement speed
   const speed = 2;
+
+  // Current action
+  let currentAction = '';
 
   useFrame((state, delta) => {
     if (ref.current) {
@@ -39,11 +47,25 @@ function Character(props) {
         // Rotate character to face direction
         const angle = Math.atan2(direction.x, direction.z);
         ref.current.rotation.y = angle;
+
+        // Play walking animation
+        if (currentAction !== 'Walking') {
+          actions.Idle.stop();
+          actions.Walking.play();
+          currentAction = 'Walking';
+        }
+      } else {
+        // Play idle animation
+        if (currentAction !== 'Idle') {
+          actions.Walking.stop();
+          actions.Idle.play();
+          currentAction = 'Idle';
+        }
       }
     }
   });
 
-  return <primitive object={scene} />;
+  return <primitive ref={ref} object={scene} />;
 }
 
 export default Character;
