@@ -1,6 +1,8 @@
+// src/App.js
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import Character from './components/characters/Character';
 
 function App() {
   return (
@@ -10,11 +12,8 @@ function App() {
         <ambientLight intensity={0.5} />
         <directionalLight position={[0, 10, 5]} intensity={1} />
 
-        {/* 3D Object */}
-        <mesh rotation={[0, 0, 0]}>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshStandardMaterial color="orange" />
-        </mesh>
+        {/* Character */}
+        <Character position={[0, 0, 0]} />
 
         {/* Controls */}
         <OrbitControls />
