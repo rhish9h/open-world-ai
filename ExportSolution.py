@@ -3,7 +3,7 @@ import re
 
 # Defaults
 DEFAULT_FOLDER_PATH = r"/Users/rhishabhhattarki/Documents/code/open-world-ai/open-world-ai-ui"
-DEFAULT_EXTENSIONS = {".js", ".jsx", ".css", ".html", ".txt", ".json", ".yaml", ".config", ".md"}
+DEFAULT_EXTENSIONS = {".js", ".jsx", ".css", ".html", ".txt", ".json", ".yaml", ".config", ".md", ".py"}
 DEFAULT_TOKEN_LIMIT = 2_000_000  # ChatGPT-4 token limit approximation
 DEFAULT_IGNORED_FOLDERS = {"node_modules", "venv", "__pycache__", ".git"}  # Add any folder names to be ignored
 DEFAULT_IGNORED_FILES = {"package-lock.json", "LICENSE"}  # Add any file names to be ignored

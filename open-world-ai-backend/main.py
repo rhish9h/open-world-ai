@@ -2,12 +2,22 @@
 from openai import OpenAI
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 client = OpenAI()
 
 class Message(BaseModel):
     text: str
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Adjust this as needed
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # The OpenAI API Key needs to be set either in the env variable in terminal or in the ~/.zshrc file
 # export OPENAI_API_KEY="enter key here"

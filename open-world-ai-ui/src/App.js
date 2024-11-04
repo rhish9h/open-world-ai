@@ -1,10 +1,10 @@
-// src/App.js
 import React, { useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import Character from "./components/characters/Character";
 import AICharacter from "./components/characters/AICharacter";
 import Chat from "./components/Chat";
+import axios from "axios";
 
 function App() {
   const [showChat, setShowChat] = useState(false);
@@ -15,9 +15,18 @@ function App() {
     setShowChat(true);
   };
 
-  const handleSendMessage = (text) => {
+  const handleSendMessage = async (text) => {
     setMessages([...messages, { sender: "user", text }]);
-    // Placeholder for sending message to backend
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/chat", { text });
+      const aiText = response.data.response.content;
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { sender: "ai", text: aiText },
+      ]);
+    } catch (error) {
+      console.error("Error:", error);
+    }
   };
 
   return (
