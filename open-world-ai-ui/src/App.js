@@ -1,12 +1,27 @@
 // src/App.js
-import React from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import Character from './components/characters/Character';
+import React, { useState } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import Character from "./components/characters/Character";
+import AICharacter from "./components/characters/AICharacter";
+import Chat from "./components/Chat";
 
 function App() {
+  const [showChat, setShowChat] = useState(false);
+  const [messages, setMessages] = useState([]);
+
+  const handleAIInteract = () => {
+    console.log("Showing chat");
+    setShowChat(true);
+  };
+
+  const handleSendMessage = (text) => {
+    setMessages([...messages, { sender: "user", text }]);
+    // Placeholder for sending message to backend
+  };
+
   return (
-    <div style={{ height: '100vh' }}>
+    <div style={{ height: "100vh" }}>
       <Canvas>
         {/* Lighting */}
         <ambientLight intensity={0.5} />
@@ -14,6 +29,7 @@ function App() {
 
         {/* Character */}
         <Character position={[0, 0, 0]} />
+        <AICharacter position={[4, 0, 0]} onInteract={handleAIInteract} />
 
         {/* Ground */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -24,6 +40,13 @@ function App() {
         {/* Controls */}
         <OrbitControls />
       </Canvas>
+      {showChat && (
+        <Chat
+          onClose={() => setShowChat(false)}
+          onSendMessage={handleSendMessage}
+          messages={messages}
+        />
+      )}
     </div>
   );
 }

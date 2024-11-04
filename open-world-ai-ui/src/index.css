@@ -11,3 +11,41 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.chat-ui {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 300px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.chat-message.user {
+  text-align: right;
+  color: #0f0;
+}
+
+.chat-message.ai {
+  text-align: left;
+  color: #0ff;
+}
+
+.chat-ui form {
+  display: flex;
+}
+
+.chat-ui input {
+  flex: 1;
+  padding: 10px;
+}
+
+.chat-ui button {
+  padding: 10px;
+}
