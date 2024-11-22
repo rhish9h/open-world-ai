@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Sky, Environment, Sparkles } from "@react-three/drei";
 import Character from "./components/characters/Character";
 import AICharacter from "./components/characters/AICharacter";
 import Chat from "./components/Chat";
 import axios from "axios";
+import Terrain from "./components/environment/Terrain";
 
 function App() {
   const [showChat, setShowChat] = useState(false);
@@ -31,30 +32,50 @@ function App() {
 
   return (
     <div style={{ height: "100vh" }}>
-      <Canvas>
-        {/* Lighting */}
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[0, 10, 5]} intensity={1} />
+      <Canvas shadows camera={{ position: [0, 5, 10], fov: 50 }}>
+        {/* Environment and Lighting */}
+        <Sky sunPosition={[100, 20, 100]} />
+        <ambientLight intensity={0.3} />
+        <directionalLight 
+          castShadow
+          position={[2.5, 8, 5]} 
+          intensity={1.5}
+          shadow-mapSize={[1024, 1024]}
+        />
+        <Environment preset="sunset" />
+        
+        {/* Atmospheric particles */}
+        <Sparkles 
+          count={200}
+          scale={15}
+          size={2}
+          speed={0.2}
+          opacity={0.1}
+        />
 
-        {/* Character */}
+        {/* Characters */}
         <Character position={[0, 0, 0]} />
         <AICharacter position={[4, 0, 0]} onInteract={handleAIInteract} />
 
-        {/* Ground */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[10, 10]} />
-          <meshStandardMaterial color="#ffffff" />
-        </mesh>
+        {/* Terrain */}
+        <Terrain />
 
         {/* Controls */}
-        <OrbitControls />
-      </Canvas>
-      {showChat && (
-        <Chat
-          onClose={() => setShowChat(false)}
-          onSendMessage={handleSendMessage}
-          messages={messages}
+        <OrbitControls 
+          maxPolarAngle={Math.PI / 2} 
+          minDistance={5}
+          maxDistance={15}
         />
+      </Canvas>
+
+      {showChat && (
+        <div className="chat-container">
+          <Chat
+            messages={messages}
+            onClose={() => setShowChat(false)}
+            onSendMessage={handleSendMessage}
+          />
+        </div>
       )}
     </div>
   );
