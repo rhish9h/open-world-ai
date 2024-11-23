@@ -8,7 +8,7 @@ import useKeyboardControls from '../../hooks/useKeyboardControls';
 function Character(props) {
   const ref = useRef();
   const controlsRef = useRef(); // Reference for OrbitControls
-  const { camera } = useThree();
+  const { camera, gl } = useThree(); // Include gl
 
   // Load the GLTF model with animations
   const { scene: characterScene, animations } = useGLTF('/models/animated_character.glb');
@@ -72,8 +72,10 @@ function Character(props) {
         }
       }
 
-      // Update OrbitControls target to follow the character
-      controlsRef.current.target.copy(ref.current.position);
+      // Update OrbitControls target to follow the character at a fixed height
+      const characterPosition = ref.current.position.clone();
+      characterPosition.y += 1.5; // Adjust this value as needed
+      controlsRef.current.target.copy(characterPosition);
     }
   });
 
@@ -83,13 +85,14 @@ function Character(props) {
 
       <OrbitControls
         ref={controlsRef}
+        args={[camera, gl.domElement]} // Pass camera and DOM element
         enableDamping={true}
         dampingFactor={0.1}
         enablePan={false}
-        maxPolarAngle={Math.PI / 2} // Prevent camera from going under the ground
+        minPolarAngle={Math.PI / 4} // Prevent camera from going too low (45 degrees)
+        maxPolarAngle={Math.PI / 2} // Prevent camera from going under the ground (90 degrees)
         minDistance={5}
         maxDistance={10}
-        target={[0, 0, 0]} // Initial target
       />
     </>
   );
