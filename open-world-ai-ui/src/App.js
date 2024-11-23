@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Sky, Environment, Sparkles } from "@react-three/drei";
+import { Sky, Environment, Sparkles } from "@react-three/drei";
 import Character from "./components/characters/Character";
 import AICharacter from "./components/characters/AICharacter";
 import Chat from "./components/Chat";
@@ -59,13 +59,6 @@ function App() {
 
         {/* Terrain */}
         <Terrain />
-
-        {/* Controls */}
-        <OrbitControls 
-          maxPolarAngle={Math.PI / 2} 
-          minDistance={5}
-          maxDistance={15}
-        />
       </Canvas>
 
       {showChat && (
