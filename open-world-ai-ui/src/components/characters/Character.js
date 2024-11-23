@@ -1,18 +1,18 @@
 // src/components/characters/Character.js
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { useGLTF, useAnimations } from '@react-three/drei';
+import { useGLTF, useAnimations, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import useKeyboardControls from '../../hooks/useKeyboardControls';
 
 function Character(props) {
   const ref = useRef();
-  const cameraRef = useRef(new THREE.Vector3());
+  const controlsRef = useRef(); // Reference for OrbitControls
   const { camera } = useThree();
 
   // Load the GLTF model with animations
-  const { scene, animations } = useGLTF('/models/animated_character.glb');
-  scene.traverse((object) => {
+  const { scene: characterScene, animations } = useGLTF('/models/animated_character.glb');
+  characterScene.traverse((object) => {
     object.castShadow = true;
   });
 
@@ -22,38 +22,39 @@ function Character(props) {
   // Get keyboard input
   const { forward, backward, left, right } = useKeyboardControls();
 
-  // Camera settings
-  const cameraDistance = 8;    // Increased from 5 to 8 (further back)
-  const cameraHeight = 3.5;    // Increased from 2 to 3.5 (higher up)
-  const cameraSmoothness = 0.1;  // Lower = smoother camera
-
   // Movement speed
-  const speed = 2;
+  const speed = 4; // Adjusted speed for smoother movement
 
   // Current action
   let currentAction = '';
 
   useFrame((state, delta) => {
-    if (ref.current) {
-      // Calculate direction
-      let direction = { x: 0, z: 0 };
-      if (forward) direction.z -= 1;
-      if (backward) direction.z += 1;
-      if (left) direction.x -= 1;
-      if (right) direction.x += 1;
+    if (ref.current && controlsRef.current) {
+      const velocity = new THREE.Vector3();
+      const direction = new THREE.Vector3();
 
-      // Normalize direction
-      const length = Math.hypot(direction.x, direction.z);
-      if (length > 0) {
-        direction.x /= length;
-        direction.z /= length;
+      // Get the direction the camera is facing
+      camera.getWorldDirection(direction);
+      direction.y = 0; // Ignore vertical component
+      direction.normalize();
 
-        // Update position
-        ref.current.position.x += direction.x * speed * delta;
-        ref.current.position.z += direction.z * speed * delta;
+      // Get the right vector from the camera
+      const rightVector = new THREE.Vector3();
+      rightVector.crossVectors(camera.up, direction).normalize();
 
-        // Rotate character to face direction
-        const angle = Math.atan2(direction.x, direction.z);
+      // Calculate movement direction based on key inputs
+      if (forward) velocity.add(direction);
+      if (backward) velocity.sub(direction);
+      if (left) velocity.add(rightVector);
+      if (right) velocity.sub(rightVector);
+
+      // Normalize velocity and move character
+      if (velocity.length() > 0) {
+        velocity.normalize();
+        ref.current.position.addScaledVector(velocity, speed * delta);
+
+        // Rotate character to face movement direction
+        const angle = Math.atan2(velocity.x, velocity.z);
         ref.current.rotation.y = angle;
 
         // Play walking animation
@@ -71,42 +72,27 @@ function Character(props) {
         }
       }
 
-      // Update camera position
-      const characterPosition = ref.current.position;
-      const characterRotation = ref.current.rotation;
-
-      // Calculate ideal camera position (behind and above character)
-      const idealOffset = new THREE.Vector3(
-        -Math.sin(characterRotation.y) * cameraDistance,
-        cameraHeight,
-        -Math.cos(characterRotation.y) * cameraDistance
-      );
-
-      const idealPosition = new THREE.Vector3();
-      idealPosition.copy(characterPosition).add(idealOffset);
-
-      // Smoothly move camera to ideal position
-      cameraRef.current.lerp(idealPosition, cameraSmoothness);
-      camera.position.copy(cameraRef.current);
-
-      // Make camera look at character
-      const lookAtPosition = new THREE.Vector3();
-      lookAtPosition.copy(characterPosition).add(new THREE.Vector3(0, 1, 0));
-      camera.lookAt(lookAtPosition);
+      // Update OrbitControls target to follow the character
+      controlsRef.current.target.copy(ref.current.position);
     }
   });
 
-  // Initialize camera position
-  useEffect(() => {
-    if (ref.current) {
-      const pos = ref.current.position;
-      cameraRef.current.set(pos.x, pos.y + cameraHeight, pos.z + cameraDistance);
-      camera.position.copy(cameraRef.current);
-      camera.lookAt(pos);
-    }
-  }, [camera]);
+  return (
+    <>
+      <primitive ref={ref} object={characterScene} />
 
-  return <primitive ref={ref} object={scene} />;
+      <OrbitControls
+        ref={controlsRef}
+        enableDamping={true}
+        dampingFactor={0.1}
+        enablePan={false}
+        maxPolarAngle={Math.PI / 2} // Prevent camera from going under the ground
+        minDistance={5}
+        maxDistance={10}
+        target={[0, 0, 0]} // Initial target
+      />
+    </>
+  );
 }
 
 export default Character;
