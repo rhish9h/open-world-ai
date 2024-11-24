@@ -3,7 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { Sky, Environment, Sparkles } from "@react-three/drei";
 import Character from "./components/characters/Character";
 import AICharacter from "./components/characters/AICharacter";
-import Chat from "./components/Chat";
+import Chat from './components/chat/Chat';
 import axios from "axios";
 import Terrain from "./components/environment/Terrain";
 
