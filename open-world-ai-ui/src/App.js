@@ -1,11 +1,28 @@
 import React, { useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Sky, Environment, Sparkles } from "@react-three/drei";
+import { Physics } from '@react-three/cannon';
 import Character from "./components/characters/Character";
 import AICharacter from "./components/characters/AICharacter";
 import Chat from './components/chat/Chat';
 import axios from "axios";
 import Terrain from "./components/environment/Terrain";
+import ObstacleCourse from "./components/obstacles/ObstacleCourse";
+
+// Define obstacle courses
+const courses = [
+  {
+    id: 'course1',
+    startPosition: [-10, 0, -10],
+    endPosition: [10, 0, -10],
+    obstacles: [
+      { type: 'wall', position: [-5, 1.5, -10], scale: [0.5, 3, 4] },
+      { type: 'platform', position: [0, 1, -10], scale: [4, 0.5, 4] },
+      { type: 'gap', position: [5, 0, -10], scale: [3, 0.1, 4] },
+    ]
+  },
+  // Add more courses here as needed
+];
 
 function App() {
   const [showChat, setShowChat] = useState(false);
@@ -59,12 +76,25 @@ function App() {
           opacity={0.1}
         />
 
-        {/* Characters */}
-        <Character position={[0, 0, 0]} />
-        <AICharacter position={[4, 0, 0]} onInteract={handleAIInteract} />
+        <Physics>
+          {/* Characters */}
+          <Character position={[0, 0, 0]} />
+          <AICharacter position={[4, 0, 0]} onInteract={handleAIInteract} />
+          
+          {/* Render obstacle courses */}
+          {courses.map(course => (
+            <ObstacleCourse
+              key={course.id}
+              courseId={course.id}
+              startPosition={course.startPosition}
+              endPosition={course.endPosition}
+              obstacles={course.obstacles}
+            />
+          ))}
 
-        {/* Terrain */}
-        <Terrain />
+          {/* Terrain */}
+          <Terrain />
+        </Physics>
       </Canvas>
 
       {showChat && (
