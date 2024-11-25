@@ -13,12 +13,25 @@ import ObstacleCourse from "./components/obstacles/ObstacleCourse";
 const courses = [
   {
     id: 'course1',
-    startPosition: [-10, 0, -10],
-    endPosition: [10, 0, -10],
+    startPosition: [-15, 0, -15],
+    endPosition: [15, 0, -15],
     obstacles: [
-      { type: 'wall', position: [-5, 1.5, -10], scale: [0.5, 3, 4] },
-      { type: 'platform', position: [0, 1, -10], scale: [4, 0.5, 4] },
-      { type: 'gap', position: [5, 0, -10], scale: [3, 0.1, 4] },
+      { 
+        type: 'barrier', 
+        position: [-10, 1, -15], 
+        scale: [0.3, 2, 4], 
+        rotation: [0, Math.PI / 6, 0] 
+      },
+      { 
+        type: 'corridor', 
+        position: [0, 1, -15], 
+        scale: [8, 2, 3] 
+      },
+      { 
+        type: 'maze', 
+        position: [10, 1, -15], 
+        scale: [6, 2, 6] 
+      },
     ]
   },
   // Add more courses here as needed
