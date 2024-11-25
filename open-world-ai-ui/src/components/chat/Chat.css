@@ -18,12 +18,25 @@
     overflow: hidden;
 }
 
+/* Left positioned chat */
+.chat-ui.left-positioned {
+    right: auto;
+    left: 20px;
+    transform-origin: bottom left;
+}
+
 .chat-ui.maximized {
     width: 80vw;
     height: 80vh;
     bottom: 10vh;
     right: 10vw;
     transform: scale(1) translate(0, 0);
+}
+
+/* Left positioned maximized state */
+.chat-ui.left-positioned.maximized {
+    right: auto;
+    left: 10vw;
 }
 
 .chat-ui.minimized {

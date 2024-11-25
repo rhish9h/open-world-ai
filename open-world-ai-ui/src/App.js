@@ -10,10 +10,16 @@ import Terrain from "./components/environment/Terrain";
 function App() {
   const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [chatOnLeft, setChatOnLeft] = useState(false);
 
-  const handleAIInteract = () => {
+  const handleAIInteract = ({ isOnRight }) => {
     console.log("Showing chat");
     setShowChat(true);
+    setChatOnLeft(isOnRight);
+  };
+
+  const handleCloseChat = () => {
+    setShowChat(false);
   };
 
   const handleSendMessage = async (text) => {
@@ -62,13 +68,12 @@ function App() {
       </Canvas>
 
       {showChat && (
-        <div className="chat-container">
-          <Chat
-            messages={messages}
-            onClose={() => setShowChat(false)}
-            onSendMessage={handleSendMessage}
-          />
-        </div>
+        <Chat
+          onClose={handleCloseChat}
+          onSendMessage={handleSendMessage}
+          messages={messages}
+          isOnLeft={chatOnLeft}
+        />
       )}
     </div>
   );

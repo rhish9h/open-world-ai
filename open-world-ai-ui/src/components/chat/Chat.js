@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Chat.css';
 
-function Chat({ onClose, onSendMessage, messages }) {
+function Chat({ onClose, onSendMessage, messages, isOnLeft }) {
   const [input, setInput] = useState('');
   const [isMaximized, setIsMaximized] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -31,8 +31,13 @@ function Chat({ onClose, onSendMessage, messages }) {
     if (isMaximized) setIsMaximized(false);
   };
 
+  const handleClose = (e) => {
+    e.stopPropagation();
+    onClose();
+  };
+
   return (
-    <div className={`chat-ui ${isMaximized ? 'maximized' : ''} ${isMinimized ? 'minimized' : ''}`}>
+    <div className={`chat-ui ${isMaximized ? 'maximized' : ''} ${isMinimized ? 'minimized' : ''} ${isOnLeft ? 'left-positioned' : ''}`}>
       {!isMinimized ? (
         <>
           <div className="chat-header">
@@ -54,7 +59,7 @@ function Chat({ onClose, onSendMessage, messages }) {
               </button>
               <button 
                 className="control-button close-button" 
-                onClick={onClose}
+                onClick={handleClose}
                 title="Close"
               >
                 <span>×</span>

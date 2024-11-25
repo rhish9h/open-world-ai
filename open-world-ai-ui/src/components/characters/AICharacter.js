@@ -1,8 +1,11 @@
 import React, { useRef, useEffect } from "react";
 import { useGLTF, useAnimations } from "@react-three/drei";
+import { useThree, useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 
 function AICharacter({ onInteract, ...props }) {
   const ref = useRef();
+  const { camera, size } = useThree();
 
   // Load the GLTF model with animations
   const { scene, animations } = useGLTF("/models/granny.glb");
@@ -12,7 +15,6 @@ function AICharacter({ onInteract, ...props }) {
 
   // Play the idle animation on load
   useEffect(() => {
-    // Check if the 'Idle' animation exists
     if (actions && actions["Idle"]) {
       actions["Idle"].play();
     } else {
@@ -20,10 +22,23 @@ function AICharacter({ onInteract, ...props }) {
     }
   }, [actions]);
 
+  // Track screen position
+  useFrame(() => {
+    if (ref.current) {
+      const vector = new THREE.Vector3();
+      ref.current.getWorldPosition(vector);
+      vector.project(camera);
+      const x = (vector.x * 0.5 + 0.5) * size.width;
+      const isOnRight = x > size.width / 2;
+      ref.current.screenPosition = { x, isOnRight };
+    }
+  });
+
   const handlePointerDown = (event) => {
     event.stopPropagation();
-    console.log("Clicked on AI Character");
-    if (onInteract) onInteract();
+    if (onInteract && ref.current?.screenPosition) {
+      onInteract({ isOnRight: ref.current.screenPosition.isOnRight });
+    }
   };
 
   return (
