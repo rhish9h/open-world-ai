@@ -1,5 +1,6 @@
 // src/components/Chat.js
 import React, { useState, useEffect, useRef } from 'react';
+import { UserIcon, RobotIcon } from './ChatIcons';
 import './Chat.css';
 
 function Chat({ onClose, onSendMessage, messages, isOnLeft }) {
@@ -76,7 +77,11 @@ function Chat({ onClose, onSendMessage, messages, isOnLeft }) {
           <div className="chat-messages">
             {messages.map((msg, idx) => (
               <div key={idx} className={`chat-message ${msg.sender}`}>
-                <div className="message-bubble">{msg.text}</div>
+                <div className="message-container">
+                  {msg.sender === 'ai' && <div className="avatar ai-avatar"><RobotIcon /></div>}
+                  <div className="message-bubble">{msg.text}</div>
+                  {msg.sender === 'user' && <div className="avatar user-avatar"><UserIcon /></div>}
+                </div>
               </div>
             ))}
             <div ref={messagesEndRef} />
