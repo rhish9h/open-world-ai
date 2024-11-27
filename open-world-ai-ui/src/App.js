@@ -13,28 +13,89 @@ import ObstacleCourse from "./components/obstacles/ObstacleCourse";
 const courses = [
   {
     id: 'course1',
-    startPosition: [-15, 0, -15],
-    endPosition: [15, 0, -15],
+    startPosition: [-25, 0, -30],
+    endPosition: [25, 0, -30],
     obstacles: [
+      // North side obstacles (positive z direction)
       { 
-        type: 'barrier', 
-        position: [-10, 1, -15], 
-        scale: [0.3, 2, 4], 
-        rotation: [0, Math.PI / 6, 0] 
+        type: 'pillar',
+        position: [-15, 1, -20],
+        scale: [0.8, 3, 0.8],
+        rotation: [0, Math.PI / 4, 0]
       },
       { 
-        type: 'corridor', 
-        position: [0, 1, -15], 
-        scale: [8, 2, 3] 
+        type: 'bubble',
+        position: [-8, 2.5, -22],
+        radius: 1.2
       },
+      {
+        type: 'platform',
+        position: [0, 1, -18],
+        scale: [3, 0.5, 3],
+        rotation: [0, Math.PI / 6, 0]
+      },
+      {
+        type: 'pyramid',
+        position: [10, 1, -20],
+        scale: [1.5, 2, 1.5],
+        rotation: [0, -Math.PI / 6, 0]
+      },
+      
+      // South side obstacles (negative z direction)
       { 
-        type: 'maze', 
-        position: [10, 1, -15], 
-        scale: [6, 2, 6] 
+        type: 'bridge',
+        position: [-12, 1.5, -40],
+        scale: [4, 0.5, 1.5],
+        rotation: [0, Math.PI / 8, 0]
       },
+      {
+        type: 'bubble',
+        position: [-5, 2, -38],
+        radius: 0.9
+      },
+      {
+        type: 'platform',
+        position: [5, 1, -42],
+        scale: [2.5, 0.5, 2.5],
+        rotation: [0, -Math.PI / 4, 0]
+      },
+      {
+        type: 'pillar',
+        position: [15, 1, -38],
+        scale: [0.7, 2.5, 0.7],
+        rotation: [0, Math.PI / 3, 0]
+      }
+    ],
+    checkpoints: [
+      // First checkpoint (North side)
+      { position: [-5, 1, -20], rotation: [0, Math.PI / 2, 0] },
+      // Second checkpoint (South side)
+      { position: [5, 1, -40], rotation: [0, Math.PI / 2, 0] }
+    ],
+    // Single path of arrows: Start -> Checkpoint 1 -> Checkpoint 2 -> End
+    arrows: [
+      // Start to First Checkpoint - all arrows point to (-5, -20)
+      { position: [-23, 0.01, -30], rotation: [0, Math.PI - Math.atan2(10, 18), 0] },  // Point to CP1
+      { position: [-19, 0.01, -28], rotation: [0, Math.PI - Math.atan2(8, 14), 0] },   // Point to CP1
+      { position: [-15, 0.01, -26], rotation: [0, Math.PI - Math.atan2(6, 10), 0] },   // Point to CP1
+      { position: [-11, 0.01, -24], rotation: [0, Math.PI - Math.atan2(4, 6), 0] },    // Point to CP1
+      { position: [-7, 0.01, -21], rotation: [0, Math.PI - Math.atan2(1, 2), 0] },     // Point to CP1
+      
+      // First Checkpoint to Second Checkpoint - all arrows point to (5, -40)
+      { position: [-3, 0.01, -22], rotation: [0, Math.PI - Math.atan2(-18, 8), 0] },   // Point to CP2
+      { position: [-1, 0.01, -26], rotation: [0, Math.PI - Math.atan2(-14, 6), 0] },   // Point to CP2
+      { position: [1, 0.01, -30], rotation: [0, Math.PI - Math.atan2(-10, 4), 0] },    // Point to CP2
+      { position: [3, 0.01, -34], rotation: [0, Math.PI - Math.atan2(-6, 2), 0] },     // Point to CP2
+      { position: [5, 0.01, -38], rotation: [0, Math.PI - Math.atan2(-2, 0), 0] },     // Point to CP2
+      
+      // Second Checkpoint to End - all arrows point to (25, -30)
+      { position: [8, 0.01, -38], rotation: [0, Math.PI - Math.atan2(8, 17), 0] },     // Point to End
+      { position: [12, 0.01, -36], rotation: [0, Math.PI - Math.atan2(6, 13), 0] },    // Point to End
+      { position: [16, 0.01, -34], rotation: [0, Math.PI - Math.atan2(4, 9), 0] },     // Point to End
+      { position: [20, 0.01, -32], rotation: [0, Math.PI - Math.atan2(2, 5), 0] },     // Point to End
+      { position: [23, 0.01, -30], rotation: [0, Math.PI - Math.atan2(0, 2), 0] }      // Point to End
     ]
-  },
-  // Add more courses here as needed
+  }
 ];
 
 function App() {
@@ -90,23 +151,20 @@ function App() {
         />
 
         <Physics>
-          {/* Characters */}
-          <Character position={[0, 0, 0]} />
-          <AICharacter position={[4, 0, 0]} onInteract={handleAIInteract} />
-          
-          {/* Render obstacle courses */}
-          {courses.map(course => (
+          <Terrain />
+          {courses.map((course) => (
             <ObstacleCourse
               key={course.id}
               courseId={course.id}
               startPosition={course.startPosition}
               endPosition={course.endPosition}
               obstacles={course.obstacles}
+              checkpoints={course.checkpoints}
+              arrows={course.arrows}
             />
           ))}
-
-          {/* Terrain */}
-          <Terrain />
+          <Character position={[0, 1, 0]} />
+          <AICharacter position={[5, 1, 0]} onInteract={handleAIInteract} />
         </Physics>
       </Canvas>
 
