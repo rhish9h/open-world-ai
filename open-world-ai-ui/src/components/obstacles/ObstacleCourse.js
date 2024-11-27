@@ -7,7 +7,7 @@ import Checkpoint from './Checkpoint';
 import GroundArrow from './GroundArrow';
 import {
   CandyPillar,
-  CandyBubble,
+  CandyBubbleObstacle,
   CandyBridge,
   CandyPyramid,
   CandyPlatform,
@@ -110,10 +110,10 @@ function ObstacleCourse({
         );
       case 'bubble':
         return (
-          <CandyBubble
+          <CandyBubbleObstacle
             key={`${courseId}-bubble-${index}`}
             position={position}
-            radius={radius}
+            scale={[radius, radius, radius]}
             color={color}
           />
         );

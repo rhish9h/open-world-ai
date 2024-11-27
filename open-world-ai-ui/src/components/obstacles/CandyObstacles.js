@@ -166,3 +166,22 @@ export function CandyPlatform({ position, scale, color = candyColors.green }) {
     </mesh>
   );
 }
+
+export function CandyBubbleObstacle({ position, scale, color }) {
+  const meshRef = useRef();
+  const time = useRef(Math.random() * Math.PI * 2); // Start at a random position
+
+  useFrame((state, delta) => {
+    time.current += delta;
+    if (meshRef.current) {
+      meshRef.current.position.y = position[1] + Math.sin(time.current) * 0.5; // Smooth up and down motion
+    }
+  });
+
+  return (
+    <mesh ref={meshRef} position={position} scale={scale}>
+      <sphereGeometry args={[1, 32, 32]} />
+      <meshStandardMaterial color={color} />
+    </mesh>
+  );
+}
