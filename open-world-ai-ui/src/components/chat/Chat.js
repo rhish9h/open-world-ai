@@ -38,9 +38,16 @@ function Chat({ onClose, onSendMessage, messages, isOnLeft }) {
 
   return (
     <div className={`chat-ui ${isMaximized ? 'maximized' : ''} ${isMinimized ? 'minimized' : ''} ${isOnLeft ? 'left-positioned' : ''}`}>
-      {!isMinimized ? (
+      {isMinimized ? (
+        <div className="chat-minimized" onClick={toggleMinimize}>
+          <span>AI Assistant</span>
+          <button className="restore-button">
+            <span>⤢</span>
+          </button>
+        </div>
+      ) : (
         <>
-          <div className="chat-header">
+          <div className="chat-header" onDoubleClick={toggleMaximize}>
             <h2>AI Assistant</h2>
             <div className="chat-controls">
               <button 
@@ -86,13 +93,6 @@ function Chat({ onClose, onSendMessage, messages, isOnLeft }) {
             </button>
           </form>
         </>
-      ) : (
-        <div className="chat-minimized" onClick={toggleMinimize}>
-          <span>AI Assistant</span>
-          <button className="restore-button">
-            <span>⤢</span>
-          </button>
-        </div>
       )}
     </div>
   );

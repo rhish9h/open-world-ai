@@ -101,7 +101,9 @@ const courses = [
 
 function App() {
   const [showChat, setShowChat] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    { text: "Hi! I'm your AI assistant. How can I help you with the obstacle course?", sender: "ai" }
+  ]);
   const [chatOnLeft, setChatOnLeft] = useState(false);
   
   const gameState = useGameState();
@@ -117,16 +119,31 @@ function App() {
   };
 
   const handleSendMessage = async (message) => {
+    // Add user message immediately
+    setMessages(prev => [...prev, { text: message, sender: "user" }]);
+    
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
+      
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      
       const data = await response.json();
-      setMessages((prev) => [...prev, { text: message, sender: "user" }, { text: data.reply, sender: "ai" }]);
+      
+      // Add AI response
+      setMessages(prev => [...prev, { text: data.reply || "I'm having trouble understanding that. Could you rephrase?", sender: "ai" }]);
     } catch (error) {
       console.error("Error:", error);
+      // Add error message
+      setMessages(prev => [...prev, { 
+        text: "Sorry, I'm having trouble connecting. Please try again.", 
+        sender: "ai" 
+      }]);
     }
   };
 
@@ -138,14 +155,12 @@ function App() {
       </div>
 
       {showChat && (
-        <div style={{ position: 'absolute', top: '50%', [chatOnLeft ? 'left' : 'right']: 20, transform: 'translateY(-50%)', zIndex: 1 }}>
-          <Chat
-            onClose={handleCloseChat}
-            onSendMessage={handleSendMessage}
-            messages={messages}
-            isOnLeft={chatOnLeft}
-          />
-        </div>
+        <Chat
+          onClose={handleCloseChat}
+          onSendMessage={handleSendMessage}
+          messages={messages}
+          isOnLeft={chatOnLeft}
+        />
       )}
 
       {/* 3D Scene */}
@@ -184,7 +199,7 @@ function App() {
             />
           ))}
           <Character position={[0, 1, 0]} />
-          <AICharacter position={[5, 1, 0]} onInteract={handleAIInteract} />
+          <AICharacter position={[5, 0, -5]} onInteract={handleAIInteract} />
         </Physics>
       </Canvas>
     </div>
