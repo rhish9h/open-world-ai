@@ -1,111 +1,86 @@
 import React, { useRef } from 'react';
-import { Text } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import BeaconLight from '../effects/BeaconLight';
 
-function StartPoint({ 
-  position = [0, 0, 0], 
-  scale = [1, 1, 1], 
-  color = '#00ff88',
-  radius = 2,
-  height = 4 
-}) {
-  const hologramRef = useRef();
-  const glowRef = useRef();
-  const ringRef = useRef();
+function StartPoint({ position }) {
+  const meshRef = useRef();
+  const time = useRef(0);
 
-  useFrame((state) => {
-    const time = state.clock.getElapsedTime();
-    
-    // Rotate the hologram
-    if (hologramRef.current) {
-      hologramRef.current.rotation.y += 0.005;
-    }
-    
-    // Pulse the glow
-    if (glowRef.current) {
-      glowRef.current.material.opacity = 0.5 + Math.sin(time * 2) * 0.2;
-    }
-    
-    // Rotate and pulse the ring
-    if (ringRef.current) {
-      ringRef.current.rotation.y -= 0.01;
-      ringRef.current.scale.x = ringRef.current.scale.z = 1 + Math.sin(time * 3) * 0.1;
+  // Create custom shader material for the cylinder
+  const cylinderMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      time: { value: 0 },
+      baseColor: { value: new THREE.Color('#32CD32') }, // Lime green
+      waveColor: { value: new THREE.Color('#98FB98') }  // Pale green
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      varying vec3 vPosition;
+      
+      void main() {
+        vUv = uv;
+        vPosition = position;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float time;
+      uniform vec3 baseColor;
+      uniform vec3 waveColor;
+      varying vec2 vUv;
+      varying vec3 vPosition;
+      
+      void main() {
+        // Base pulsating effect
+        float pulse = sin(time * 2.0) * 0.15 + 0.85;
+        
+        // Create multiple wave patterns
+        float wave1 = sin(vUv.y * 10.0 + time * 3.0) * 0.5 + 0.5;
+        float wave2 = cos(vUv.x * 8.0 + time * 2.0) * 0.5 + 0.5;
+        float wave3 = sin((vUv.x + vUv.y) * 5.0 + time * 4.0) * 0.5 + 0.5;
+        
+        // Combine waves with different weights
+        float waves = wave1 * 0.4 + wave2 * 0.3 + wave3 * 0.3;
+        
+        // Create spiral pattern
+        float angle = atan(vPosition.x, vPosition.z);
+        float spiral = sin(angle * 4.0 + time * 3.0 + vPosition.y * 2.0) * 0.5 + 0.5;
+        
+        // Combine all effects
+        vec3 finalColor = mix(baseColor, waveColor, waves * spiral * pulse);
+        
+        // Add brightness variation
+        finalColor *= (0.8 + pulse * 0.2);
+        
+        // Add sparkle effect
+        float sparkle = fract(sin(dot(vUv + time * 0.1, vec2(12.9898, 78.233))) * 43758.5453);
+        finalColor += vec3(sparkle * 0.1);
+        
+        gl_FragColor = vec4(finalColor, 1.0);
+      }
+    `,
+    side: THREE.DoubleSide
+  });
+
+  useFrame((state, delta) => {
+    time.current += delta;
+    cylinderMaterial.uniforms.time.value = time.current;
+
+    // Add floating movement
+    if (meshRef.current) {
+      meshRef.current.position.y = position[1] + Math.sin(time.current) * 0.1;
+      meshRef.current.rotation.y += delta * 0.5; // Gentle rotation
     }
   });
 
   return (
     <group position={position}>
-      {/* Base hologram cylinder */}
-      <mesh ref={hologramRef} receiveShadow>
-        <cylinderGeometry args={[radius, radius, height, 32]} />
-        <meshPhysicalMaterial
-          color={color}
-          transparent
-          opacity={0.3}
-          metalness={0.8}
-          roughness={0.2}
-          envMapIntensity={1}
-          clearcoat={1}
-          clearcoatRoughness={0.2}
-        />
+      <mesh ref={meshRef}>
+        <cylinderGeometry args={[1, 1, 0.5, 32]} />
+        <primitive object={cylinderMaterial} attach="material" />
       </mesh>
-
-      {/* Inner glow */}
-      <mesh ref={glowRef} position={[0, height/4, 0]}>
-        <cylinderGeometry args={[radius * 0.8, radius * 0.8, height * 0.8, 32]} />
-        <meshBasicMaterial
-          color={color}
-          transparent
-          opacity={0.5}
-          side={THREE.BackSide}
-        />
-      </mesh>
-
-      {/* Rotating ring */}
-      <mesh ref={ringRef} position={[0, height/2, 0]}>
-        <torusGeometry args={[radius * 1.2, 0.1, 16, 32]} />
-        <meshBasicMaterial
-          color={color}
-          transparent
-          opacity={0.7}
-        />
-      </mesh>
-
-      {/* Start text */}
-      <group position={[0, height/2, 0]}>
-        <Text
-          position={[0, 0, radius]}
-          rotation={[0, 0, 0]}
-          fontSize={0.5}
-          color={color}
-          anchorX="center"
-          anchorY="middle"
-        >
-          START
-        </Text>
-        <Text
-          position={[0, 0, -radius]}
-          rotation={[0, Math.PI, 0]}
-          fontSize={0.5}
-          color={color}
-          anchorX="center"
-          anchorY="middle"
-        >
-          START
-        </Text>
-      </group>
-
-      {/* Ground marker */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
-        <ringGeometry args={[radius * 1.2, radius * 1.4, 32]} />
-        <meshBasicMaterial
-          color={color}
-          transparent
-          opacity={0.3}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
+      <BeaconLight color="#32CD32" height={40} intensity={0.8} pulseSpeed={0.8} />
     </group>
   );
 }
