@@ -81,7 +81,7 @@ function Character(props) {
 
   return (
     <>
-      <primitive ref={ref} object={characterScene} />
+      <primitive ref={ref} object={characterScene} name="Character" />
 
       <OrbitControls
         ref={controlsRef}

@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Sky, Environment, Sparkles } from "@react-three/drei";
+import { Sky, Environment, Stars, Sparkles } from "@react-three/drei";
 import { Physics } from '@react-three/cannon';
 import Character from "./components/characters/Character";
 import AICharacter from "./components/characters/AICharacter";
 import Chat from './components/chat/Chat';
-import axios from "axios";
 import Terrain from "./components/environment/Terrain";
 import ObstacleCourse from "./components/obstacles/ObstacleCourse";
+import Stopwatch from './components/ui/Stopwatch';
+import useGameState from './hooks/useGameState';
 
 // Define obstacle courses
 const courses = [
@@ -102,9 +103,11 @@ function App() {
   const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState([]);
   const [chatOnLeft, setChatOnLeft] = useState(false);
+  
+  const gameState = useGameState();
+  const { isRunning, handleStopwatchReset } = gameState;
 
   const handleAIInteract = ({ isOnRight }) => {
-    console.log("Showing chat");
     setShowChat(true);
     setChatOnLeft(isOnRight);
   };
@@ -113,25 +116,42 @@ function App() {
     setShowChat(false);
   };
 
-  const handleSendMessage = async (text) => {
-    setMessages([...messages, { sender: "user", text }]);
+  const handleSendMessage = async (message) => {
     try {
-      const response = await axios.post("http://127.0.0.1:8000/chat", { text });
-      const aiText = response.data.response.content;
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: "ai", text: aiText },
-      ]);
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      const data = await response.json();
+      setMessages((prev) => [...prev, { text: message, sender: "user" }, { text: data.reply, sender: "ai" }]);
     } catch (error) {
       console.error("Error:", error);
     }
   };
 
   return (
-    <div style={{ height: "100vh" }}>
+    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      {/* UI Overlay */}
+      <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}>
+        <Stopwatch isRunning={isRunning} onReset={handleStopwatchReset} />
+      </div>
+
+      {showChat && (
+        <div style={{ position: 'absolute', top: '50%', [chatOnLeft ? 'left' : 'right']: 20, transform: 'translateY(-50%)', zIndex: 1 }}>
+          <Chat
+            onClose={handleCloseChat}
+            onSendMessage={handleSendMessage}
+            messages={messages}
+            isOnLeft={chatOnLeft}
+          />
+        </div>
+      )}
+
+      {/* 3D Scene */}
       <Canvas shadows camera={{ position: [0, 5, 10], fov: 50 }}>
-        {/* Environment and Lighting */}
         <Sky sunPosition={[100, 20, 100]} />
+        <Stars count={1000} />
         <ambientLight intensity={0.3} />
         <directionalLight 
           castShadow
@@ -141,7 +161,6 @@ function App() {
         />
         <Environment preset="sunset" />
         
-        {/* Atmospheric particles */}
         <Sparkles 
           count={200}
           scale={15}
@@ -153,7 +172,7 @@ function App() {
         <Physics>
           <Terrain />
           {courses.map((course) => (
-            <ObstacleCourse
+            <ObstacleCourse 
               key={course.id}
               courseId={course.id}
               startPosition={course.startPosition}
@@ -161,21 +180,13 @@ function App() {
               obstacles={course.obstacles}
               checkpoints={course.checkpoints}
               arrows={course.arrows}
+              gameState={gameState}
             />
           ))}
           <Character position={[0, 1, 0]} />
           <AICharacter position={[5, 1, 0]} onInteract={handleAIInteract} />
         </Physics>
       </Canvas>
-
-      {showChat && (
-        <Chat
-          onClose={handleCloseChat}
-          onSendMessage={handleSendMessage}
-          messages={messages}
-          isOnLeft={chatOnLeft}
-        />
-      )}
     </div>
   );
 }

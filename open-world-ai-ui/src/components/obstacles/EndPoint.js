@@ -1,11 +1,12 @@
 import React, { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import BeaconLight from '../effects/BeaconLight';
 
-function EndPoint({ position }) {
+function EndPoint({ position, onCollision, showBeacon = true }) {
   const meshRef = useRef();
   const time = useRef(0);
+  const { scene } = useThree();
 
   // Create custom shader material for the cylinder
   const cylinderMaterial = new THREE.ShaderMaterial({
@@ -73,6 +74,21 @@ function EndPoint({ position }) {
     if (meshRef.current) {
       meshRef.current.position.y = position[1] + Math.sin(time.current * 1.5) * 0.15;
       meshRef.current.rotation.y += delta * 0.8; // Faster rotation for end point
+
+      // Check for character collision
+      const character = scene.getObjectByName("Character");
+      if (character) {
+        const characterPosition = character.position;
+        const distance = new THREE.Vector3(
+          characterPosition.x - position[0],
+          0,
+          characterPosition.z - position[2]
+        ).length();
+
+        if (distance < 2 && onCollision) {
+          onCollision();
+        }
+      }
     }
   });
 
@@ -82,7 +98,7 @@ function EndPoint({ position }) {
         <cylinderGeometry args={[1, 1, 0.5, 32]} />
         <primitive object={cylinderMaterial} attach="material" />
       </mesh>
-      <BeaconLight color="#FF69B4" height={50} intensity={1.0} pulseSpeed={1.2} />
+      {showBeacon && <BeaconLight color="#FF69B4" height={50} intensity={1.0} pulseSpeed={1.2} />}
     </group>
   );
 }

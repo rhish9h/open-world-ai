@@ -1,11 +1,12 @@
 import React, { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import BeaconLight from '../effects/BeaconLight';
 
-function StartPoint({ position }) {
+function StartPoint({ position, onCollision, showBeacon = true }) {
   const meshRef = useRef();
   const time = useRef(0);
+  const { scene } = useThree();
 
   // Create custom shader material for the cylinder
   const cylinderMaterial = new THREE.ShaderMaterial({
@@ -70,7 +71,23 @@ function StartPoint({ position }) {
     // Add floating movement
     if (meshRef.current) {
       meshRef.current.position.y = position[1] + Math.sin(time.current) * 0.1;
-      meshRef.current.rotation.y += delta * 0.5; // Gentle rotation
+      meshRef.current.rotation.y += delta * 0.5;
+
+      // Find the character in the scene
+      const character = scene.getObjectByName('Character');
+      if (character) {
+        // Check for player collision using character position
+        const characterPosition = character.position;
+        const distance = new THREE.Vector3(
+          characterPosition.x - position[0],
+          0,
+          characterPosition.z - position[2]
+        ).length();
+
+        if (distance < 2 && onCollision) {
+          onCollision();
+        }
+      }
     }
   });
 
@@ -80,7 +97,7 @@ function StartPoint({ position }) {
         <cylinderGeometry args={[1, 1, 0.5, 32]} />
         <primitive object={cylinderMaterial} attach="material" />
       </mesh>
-      <BeaconLight color="#32CD32" height={40} intensity={0.8} pulseSpeed={0.8} />
+      {showBeacon && <BeaconLight color="#32CD32" height={40} intensity={0.8} pulseSpeed={0.8} />}
     </group>
   );
 }

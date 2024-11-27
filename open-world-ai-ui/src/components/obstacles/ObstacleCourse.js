@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { useBox } from '@react-three/cannon';
-import { useFrame } from '@react-three/fiber';
+import React from 'react';
+import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import StartPoint from './StartPoint';
 import EndPoint from './EndPoint';
@@ -74,13 +73,17 @@ function ObstacleCourse({
   obstacles = defaultObstacles,
   checkpoints = defaultCheckpoints,
   arrows = defaultArrows,
-  courseId = 'course1'
+  courseId = 'course1',
+  gameState
 }) {
-  const [checkpointsPassed, setCheckpointsPassed] = useState(new Set());
-
-  const handleCheckpointPass = (checkpointNumber) => {
-    setCheckpointsPassed(prev => new Set([...prev, checkpointNumber]));
-  };
+  const { camera } = useThree();
+  const {
+    startBeacon,
+    endBeacon,
+    handleStartPoint,
+    handleEndPoint,
+    handleCheckpointPass
+  } = gameState;
 
   const renderObstacle = (obstacle, index) => {
     const { type, position, scale, rotation, color, radius } = obstacle;
@@ -139,9 +142,16 @@ function ObstacleCourse({
 
   return (
     <group>
-      {/* Start and End points */}
-      <StartPoint position={startPosition} />
-      <EndPoint position={endPosition} />
+      <StartPoint 
+        position={startPosition} 
+        onCollision={handleStartPoint}
+        showBeacon={startBeacon}
+      />
+      <EndPoint 
+        position={endPosition} 
+        onCollision={handleEndPoint}
+        showBeacon={endBeacon}
+      />
 
       {/* Checkpoints */}
       {checkpoints.map((checkpoint, index) => (
