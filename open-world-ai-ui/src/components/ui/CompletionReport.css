@@ -1,0 +1,169 @@
+.completion-report-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.completion-report {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 30px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transform-origin: center;
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.report-header h2 {
+  margin: 0;
+  font-size: 2em;
+  color: #2c3e50;
+  text-align: center;
+  flex-grow: 1;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 5px;
+  line-height: 1;
+}
+
+.report-content {
+  margin: 20px 0;
+}
+
+.time-section {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.final-time {
+  background: linear-gradient(135deg, #00b4db, #0083b0);
+  padding: 20px;
+  border-radius: 15px;
+  color: white;
+  margin-bottom: 20px;
+}
+
+.final-time h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.5em;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.time-value {
+  font-size: 2.5em;
+  font-weight: bold;
+  font-family: monospace;
+}
+
+.checkpoints-section {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.checkpoints-section h3 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 1.5em;
+  text-align: center;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.checkpoint-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkpoint-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  transition: transform 0.2s;
+}
+
+.checkpoint-item:hover {
+  transform: scale(1.02);
+}
+
+.checkpoint-label {
+  font-weight: bold;
+  color: #2c3e50;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.checkpoint-time {
+  font-family: monospace;
+  color: #0083b0;
+  font-weight: bold;
+}
+
+.report-footer {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.play-again-button {
+  background: linear-gradient(135deg, #6b46c1, #805ad5);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.play-again-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

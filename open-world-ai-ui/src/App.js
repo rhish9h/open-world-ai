@@ -8,6 +8,7 @@ import Chat from './components/chat/Chat';
 import Terrain from "./components/environment/Terrain";
 import ObstacleCourse from "./components/obstacles/ObstacleCourse";
 import Stopwatch from './components/ui/Stopwatch';
+import CompletionReport from './components/ui/CompletionReport';
 import useGameState from './hooks/useGameState';
 
 // Define obstacle courses
@@ -107,7 +108,13 @@ function App() {
   const [chatOnLeft, setChatOnLeft] = useState(false);
   
   const gameState = useGameState();
-  const { isRunning, handleStopwatchReset } = gameState;
+  const { 
+    isRunning, 
+    showReport, 
+    finalTime, 
+    checkpointTimes,
+    handleCloseReport 
+  } = gameState;
 
   const handleAIInteract = ({ isOnRight }) => {
     setShowChat(true);
@@ -151,8 +158,16 @@ function App() {
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       {/* UI Overlay */}
       <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}>
-        <Stopwatch isRunning={isRunning} onReset={handleStopwatchReset} />
+        {isRunning && <Stopwatch isRunning={isRunning} />}
       </div>
+
+      {showReport && (
+        <CompletionReport
+          finalTime={finalTime}
+          checkpointTimes={checkpointTimes}
+          onClose={handleCloseReport}
+        />
+      )}
 
       {showChat && (
         <Chat

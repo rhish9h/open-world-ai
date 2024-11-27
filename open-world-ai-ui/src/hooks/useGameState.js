@@ -5,39 +5,54 @@ const useGameState = () => {
   const [startBeacon, setStartBeacon] = useState(true);
   const [endBeacon, setEndBeacon] = useState(true);
   const [checkpointsPassed, setCheckpointsPassed] = useState(new Set());
+  const [checkpointTimes, setCheckpointTimes] = useState({});
+  const [finalTime, setFinalTime] = useState(0);
+  const [showReport, setShowReport] = useState(false);
+  const [startTime, setStartTime] = useState(0);
 
   const handleCheckpointPass = useCallback((checkpointNumber) => {
-    setCheckpointsPassed(prev => new Set([...prev, checkpointNumber]));
-  }, []);
+    if (isRunning) {
+      const currentTime = Date.now() - startTime;
+      setCheckpointTimes(prev => ({
+        ...prev,
+        [checkpointNumber]: currentTime
+      }));
+      setCheckpointsPassed(prev => new Set([...prev, checkpointNumber]));
+    }
+  }, [isRunning, startTime]);
 
   const handleStartPoint = useCallback(() => {
     if (!isRunning && startBeacon) {
       setIsRunning(true);
       setStartBeacon(false);
-      setEndBeacon(true); // Ensure end beacon is visible when starting
-      setCheckpointsPassed(new Set()); // Reset checkpoints when starting
+      setEndBeacon(true);
+      setCheckpointsPassed(new Set());
+      setCheckpointTimes({});
+      setStartTime(Date.now());
+      setShowReport(false);
     }
   }, [isRunning, startBeacon]);
 
   const handleEndPoint = useCallback(() => {
     if (isRunning && endBeacon) {
+      const finalTime = Date.now() - startTime;
+      setFinalTime(finalTime);
       setIsRunning(false);
       setEndBeacon(false);
+      setShowReport(true);
+      
       // Reset state after showing completion
       setTimeout(() => {
         setStartBeacon(true);
         setEndBeacon(true);
       }, 2000);
     }
-  }, [isRunning, endBeacon]);
+  }, [isRunning, endBeacon, startTime]);
 
-  const handleStopwatchReset = useCallback((finalTime) => {
-    if (finalTime > 0) {
-      const minutes = Math.floor(finalTime / 60000);
-      const seconds = Math.floor((finalTime % 60000) / 1000);
-      const milliseconds = Math.floor((finalTime % 1000) / 10);
-      console.log(`Final Time: ${minutes}:${seconds}.${milliseconds}`);
-    }
+  const handleCloseReport = useCallback(() => {
+    setShowReport(false);
+    setStartBeacon(true);
+    setEndBeacon(true);
   }, []);
 
   return {
@@ -45,10 +60,13 @@ const useGameState = () => {
     startBeacon,
     endBeacon,
     checkpointsPassed,
+    checkpointTimes,
+    finalTime,
+    showReport,
     handleStartPoint,
     handleEndPoint,
     handleCheckpointPass,
-    handleStopwatchReset
+    handleCloseReport
   };
 };
 
