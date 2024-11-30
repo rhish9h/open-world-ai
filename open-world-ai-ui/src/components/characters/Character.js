@@ -10,6 +10,7 @@ function Character(props) {
   const controlsRef = useRef(); // Reference for OrbitControls
   const { camera, gl } = useThree(); // Include gl
   const [isJumping, setIsJumping] = useState(false);
+  const currentAction = useRef('Idle');
 
   // Load the GLTF model with animations
   const { scene: characterScene, animations } = useGLTF('/models/character.glb');
@@ -21,31 +22,58 @@ function Character(props) {
   const { actions } = useAnimations(animations, ref);
 
   // Get keyboard input
-  const { forward, backward, left, right, jump } = useKeyboardControls();
+  const { forward, backward, left, right, jump, shift } = useKeyboardControls();
 
-  // Movement speed
-  const speed = 4; // Adjusted speed for smoother movement
+  // Movement speeds
+  const walkSpeed = 4;
+  const runSpeed = 8; // 2x walk speed
+  const speed = shift ? runSpeed : walkSpeed;
 
-  // Current action
-  let currentAction = '';
+  // Function to handle animation transitions
+  const setAnimation = (newAction) => {
+    if (currentAction.current !== newAction && !isJumping) {
+      const prevAction = actions[currentAction.current];
+      const nextAction = actions[newAction];
+      
+      if (prevAction) {
+        prevAction.fadeOut(0.2);
+      }
+      
+      if (nextAction) {
+        nextAction.reset().fadeIn(0.2).play();
+        currentAction.current = newAction;
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Start with Idle animation
+    actions.Idle?.play();
+  }, [actions]);
 
   useEffect(() => {
     if (jump && !isJumping) {
       setIsJumping(true);
-      // Stop current animations
-      Object.values(actions).forEach(action => action.stop());
-      // Play jump animation
       const jumpAction = actions['Jumping'];
       if (jumpAction) {
+        // Fade out current animation
+        const prevAction = actions[currentAction.current];
+        if (prevAction) {
+          prevAction.fadeOut(0.2);
+        }
+
+        jumpAction.reset();
         jumpAction.setLoop(THREE.LoopOnce);
         jumpAction.clampWhenFinished = true;
-        jumpAction.play();
+        jumpAction.fadeIn(0.2).play();
         
         // Reset jumping state when animation completes
-        const duration = jumpAction._clip.duration * 1000; // Convert to milliseconds
+        const duration = jumpAction._clip.duration * 1000;
         setTimeout(() => {
           setIsJumping(false);
-          jumpAction.stop();
+          jumpAction.fadeOut(0.2);
+          // Return to previous animation
+          setAnimation(currentAction.current);
         }, duration);
       }
     }
@@ -56,12 +84,10 @@ function Character(props) {
       const velocity = new THREE.Vector3();
       const direction = new THREE.Vector3();
 
-      // Get the direction the camera is facing
       camera.getWorldDirection(direction);
-      direction.y = 0; // Ignore vertical component
+      direction.y = 0;
       direction.normalize();
 
-      // Get the right vector from the camera
       const rightVector = new THREE.Vector3();
       rightVector.crossVectors(camera.up, direction).normalize();
 
@@ -71,7 +97,7 @@ function Character(props) {
       if (left) velocity.add(rightVector);
       if (right) velocity.sub(rightVector);
 
-      // Normalize velocity and move character
+      // Move and animate character
       if (velocity.length() > 0) {
         velocity.normalize();
         ref.current.position.addScaledVector(velocity, speed * delta);
@@ -80,25 +106,17 @@ function Character(props) {
         const angle = Math.atan2(velocity.x, velocity.z);
         ref.current.rotation.y = angle;
 
-        // Play walking animation only if not jumping
-        if (currentAction !== 'Walking' && !isJumping) {
-          actions.Idle?.stop();
-          actions.Walking?.play();
-          currentAction = 'Walking';
-        }
-      } else {
-        // Play idle animation only if not jumping
-        if (currentAction !== 'Idle' && !isJumping) {
-          actions.Walking?.stop();
-          actions.Idle?.play();
-          currentAction = 'Idle';
-        }
+        // Set appropriate movement animation
+        setAnimation(shift ? 'Running' : 'Walking');
+      } else if (!isJumping) {
+        // Return to idle if not moving and not jumping
+        setAnimation('Idle');
       }
 
-      // Update OrbitControls target to follow the character at a fixed height
-      const characterPosition = ref.current.position.clone();
-      characterPosition.y += 1.5; // Adjust this value as needed
-      controlsRef.current.target.copy(characterPosition);
+      // Update camera target
+      if (controlsRef.current) {
+        controlsRef.current.target.copy(ref.current.position);
+      }
     }
   });
 

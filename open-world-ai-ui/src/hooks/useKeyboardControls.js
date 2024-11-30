@@ -8,6 +8,7 @@ function useKeyboardControls() {
     left: false,
     right: false,
     jump: false,
+    shift: false,
   });
 
   useEffect(() => {
@@ -31,6 +32,10 @@ function useKeyboardControls() {
           break;
         case "Space":
           setMovement((m) => ({ ...m, jump: true }));
+          break;
+        case "ShiftLeft":
+        case "ShiftRight":
+          setMovement((m) => ({ ...m, shift: true }));
           break;
         default:
           break;
@@ -57,6 +62,10 @@ function useKeyboardControls() {
           break;
         case "Space":
           setMovement((m) => ({ ...m, jump: false }));
+          break;
+        case "ShiftLeft":
+        case "ShiftRight":
+          setMovement((m) => ({ ...m, shift: false }));
           break;
         default:
           break;
