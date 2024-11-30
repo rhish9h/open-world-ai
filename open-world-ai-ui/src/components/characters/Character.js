@@ -10,6 +10,7 @@ function Character(props) {
   const controlsRef = useRef(); // Reference for OrbitControls
   const { camera, gl } = useThree(); // Include gl
   const [isJumping, setIsJumping] = useState(false);
+  const [isDancing, setIsDancing] = useState(false);
   const currentAction = useRef('Idle');
 
   // Load the GLTF model with animations
@@ -22,7 +23,7 @@ function Character(props) {
   const { actions } = useAnimations(animations, ref);
 
   // Get keyboard input
-  const { forward, backward, left, right, jump, shift } = useKeyboardControls();
+  const { forward, backward, left, right, jump, shift, dance } = useKeyboardControls();
 
   // Movement speeds
   const walkSpeed = 4;
@@ -31,7 +32,7 @@ function Character(props) {
 
   // Function to handle animation transitions
   const setAnimation = (newAction) => {
-    if (currentAction.current !== newAction && !isJumping) {
+    if (currentAction.current !== newAction) {
       const prevAction = actions[currentAction.current];
       const nextAction = actions[newAction];
       
@@ -48,6 +49,9 @@ function Character(props) {
 
   // Function to determine current movement animation
   const getMovementAnimation = () => {
+    if (isDancing) {
+      return 'Dancing';
+    }
     if (forward || backward || left || right) {
       return shift ? 'Running' : 'Walking';
     }
@@ -59,8 +63,25 @@ function Character(props) {
     actions.Idle?.play();
   }, [actions]);
 
+  // Handle dance state
   useEffect(() => {
-    if (jump && !isJumping) {
+    if (dance && !isJumping) {
+      setIsDancing(true);
+      setAnimation('Dancing');
+    } else if (!dance) {
+      setIsDancing(false);
+      // Transition to appropriate movement animation if not jumping
+      if (!isJumping) {
+        const nextAnimation = forward || backward || left || right 
+          ? (shift ? 'Running' : 'Walking')
+          : 'Idle';
+        setAnimation(nextAnimation);
+      }
+    }
+  }, [dance]);
+
+  useEffect(() => {
+    if (jump && !isJumping && !isDancing) {
       setIsJumping(true);
       const jumpAction = actions['Jumping'];
       if (jumpAction) {
@@ -98,35 +119,38 @@ function Character(props) {
       const velocity = new THREE.Vector3();
       const direction = new THREE.Vector3();
 
-      camera.getWorldDirection(direction);
-      direction.y = 0;
-      direction.normalize();
+      // Only calculate movement if not dancing
+      if (!isDancing) {
+        camera.getWorldDirection(direction);
+        direction.y = 0;
+        direction.normalize();
 
-      const rightVector = new THREE.Vector3();
-      rightVector.crossVectors(camera.up, direction).normalize();
+        const rightVector = new THREE.Vector3();
+        rightVector.crossVectors(camera.up, direction).normalize();
 
-      // Calculate movement direction based on key inputs
-      if (forward) velocity.add(direction);
-      if (backward) velocity.sub(direction);
-      if (left) velocity.add(rightVector);
-      if (right) velocity.sub(rightVector);
+        // Calculate movement direction based on key inputs
+        if (forward) velocity.add(direction);
+        if (backward) velocity.sub(direction);
+        if (left) velocity.add(rightVector);
+        if (right) velocity.sub(rightVector);
 
-      // Move and animate character
-      if (velocity.length() > 0) {
-        velocity.normalize();
-        ref.current.position.addScaledVector(velocity, speed * delta);
+        // Move and animate character
+        if (velocity.length() > 0) {
+          velocity.normalize();
+          ref.current.position.addScaledVector(velocity, speed * delta);
 
-        // Rotate character to face movement direction
-        const angle = Math.atan2(velocity.x, velocity.z);
-        ref.current.rotation.y = angle;
+          // Rotate character to face movement direction
+          const angle = Math.atan2(velocity.x, velocity.z);
+          ref.current.rotation.y = angle;
 
-        // Set appropriate movement animation only if not jumping
-        if (!isJumping) {
-          setAnimation(shift ? 'Running' : 'Walking');
+          // Set appropriate movement animation only if not jumping
+          if (!isJumping) {
+            setAnimation(shift ? 'Running' : 'Walking');
+          }
+        } else if (!isJumping) {
+          // Return to idle if not moving and not jumping
+          setAnimation('Idle');
         }
-      } else if (!isJumping) {
-        // Return to idle if not moving and not jumping
-        setAnimation('Idle');
       }
 
       // Update camera target

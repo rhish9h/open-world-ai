@@ -9,6 +9,7 @@ function useKeyboardControls() {
     right: false,
     jump: false,
     shift: false,
+    dance: false,
   });
 
   useEffect(() => {
@@ -36,6 +37,9 @@ function useKeyboardControls() {
         case "ShiftLeft":
         case "ShiftRight":
           setMovement((m) => ({ ...m, shift: true }));
+          break;
+        case "KeyB":
+          setMovement((m) => ({ ...m, dance: true }));
           break;
         default:
           break;
@@ -66,6 +70,9 @@ function useKeyboardControls() {
         case "ShiftLeft":
         case "ShiftRight":
           setMovement((m) => ({ ...m, shift: false }));
+          break;
+        case "KeyB":
+          setMovement((m) => ({ ...m, dance: false }));
           break;
         default:
           break;
