@@ -46,6 +46,14 @@ function Character(props) {
     }
   };
 
+  // Function to determine current movement animation
+  const getMovementAnimation = () => {
+    if (forward || backward || left || right) {
+      return shift ? 'Running' : 'Walking';
+    }
+    return 'Idle';
+  };
+
   useEffect(() => {
     // Start with Idle animation
     actions.Idle?.play();
@@ -72,8 +80,14 @@ function Character(props) {
         setTimeout(() => {
           setIsJumping(false);
           jumpAction.fadeOut(0.2);
-          // Return to previous animation
-          setAnimation(currentAction.current);
+          
+          // Transition to appropriate movement animation
+          const nextAnimation = getMovementAnimation();
+          const nextAction = actions[nextAnimation];
+          if (nextAction) {
+            nextAction.reset().fadeIn(0.2).play();
+            currentAction.current = nextAnimation;
+          }
         }, duration);
       }
     }
@@ -106,8 +120,10 @@ function Character(props) {
         const angle = Math.atan2(velocity.x, velocity.z);
         ref.current.rotation.y = angle;
 
-        // Set appropriate movement animation
-        setAnimation(shift ? 'Running' : 'Walking');
+        // Set appropriate movement animation only if not jumping
+        if (!isJumping) {
+          setAnimation(shift ? 'Running' : 'Walking');
+        }
       } else if (!isJumping) {
         // Return to idle if not moving and not jumping
         setAnimation('Idle');
