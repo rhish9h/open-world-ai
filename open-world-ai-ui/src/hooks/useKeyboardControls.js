@@ -7,6 +7,7 @@ function useKeyboardControls() {
     backward: false,
     left: false,
     right: false,
+    jump: false,
   });
 
   useEffect(() => {
@@ -27,6 +28,9 @@ function useKeyboardControls() {
         case "ArrowRight":
         case "KeyD":
           setMovement((m) => ({ ...m, right: true }));
+          break;
+        case "Space":
+          setMovement((m) => ({ ...m, jump: true }));
           break;
         default:
           break;
@@ -50,6 +54,9 @@ function useKeyboardControls() {
         case "ArrowRight":
         case "KeyD":
           setMovement((m) => ({ ...m, right: false }));
+          break;
+        case "Space":
+          setMovement((m) => ({ ...m, jump: false }));
           break;
         default:
           break;

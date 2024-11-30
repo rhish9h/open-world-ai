@@ -1,5 +1,5 @@
 // src/components/characters/Character.js
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, useAnimations, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -9,9 +9,10 @@ function Character(props) {
   const ref = useRef();
   const controlsRef = useRef(); // Reference for OrbitControls
   const { camera, gl } = useThree(); // Include gl
+  const [isJumping, setIsJumping] = useState(false);
 
   // Load the GLTF model with animations
-  const { scene: characterScene, animations } = useGLTF('/models/animated_character.glb');
+  const { scene: characterScene, animations } = useGLTF('/models/character.glb');
   characterScene.traverse((object) => {
     object.castShadow = true;
   });
@@ -20,13 +21,35 @@ function Character(props) {
   const { actions } = useAnimations(animations, ref);
 
   // Get keyboard input
-  const { forward, backward, left, right } = useKeyboardControls();
+  const { forward, backward, left, right, jump } = useKeyboardControls();
 
   // Movement speed
   const speed = 4; // Adjusted speed for smoother movement
 
   // Current action
   let currentAction = '';
+
+  useEffect(() => {
+    if (jump && !isJumping) {
+      setIsJumping(true);
+      // Stop current animations
+      Object.values(actions).forEach(action => action.stop());
+      // Play jump animation
+      const jumpAction = actions['Jumping'];
+      if (jumpAction) {
+        jumpAction.setLoop(THREE.LoopOnce);
+        jumpAction.clampWhenFinished = true;
+        jumpAction.play();
+        
+        // Reset jumping state when animation completes
+        const duration = jumpAction._clip.duration * 1000; // Convert to milliseconds
+        setTimeout(() => {
+          setIsJumping(false);
+          jumpAction.stop();
+        }, duration);
+      }
+    }
+  }, [jump]);
 
   useFrame((state, delta) => {
     if (ref.current && controlsRef.current) {
@@ -57,15 +80,15 @@ function Character(props) {
         const angle = Math.atan2(velocity.x, velocity.z);
         ref.current.rotation.y = angle;
 
-        // Play walking animation
-        if (currentAction !== 'Walking') {
+        // Play walking animation only if not jumping
+        if (currentAction !== 'Walking' && !isJumping) {
           actions.Idle?.stop();
           actions.Walking?.play();
           currentAction = 'Walking';
         }
       } else {
-        // Play idle animation
-        if (currentAction !== 'Idle') {
+        // Play idle animation only if not jumping
+        if (currentAction !== 'Idle' && !isJumping) {
           actions.Walking?.stop();
           actions.Idle?.play();
           currentAction = 'Idle';
